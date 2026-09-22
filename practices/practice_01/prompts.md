@@ -4,8 +4,8 @@
 
 | ID | Артефакт и цель | Инструмент / модель | Тип промпта | Запрос или ссылка на него | Результат или ссылка | Что приняли | Что отклонили или исправили | Как проверили |
 |---|---|---|---|---|---|---|---|---|
-| P1-01 | Baseline-ревью `TRAINING_PR.diff` |  | zero-shot | Посмотри PR и найди проблемы @practices/practice_01/TRAINING_PR.diff | responses/p1-01.md |  |  |  |
-| P1-02 | Повторное ревью с master prompt | OpenCode / gpt-5 | master prompt | См. Master Prompt v1 ниже; вход: TRAINING_PR.diff, CASE.md | responses/p1-02.md | Приняты расхождения по SEC-1, API-1, REL-1, OUT-1 | Уточнили evidence по file:line | Сверили file:line с TRAINING_PR.diff и CASE.md |
+| P1-01 | Baseline-ревью `TRAINING_PR.diff` | OpenCode / gpt-5 | zero-shot | Посмотри PR и найди проблемы @practices/practice_01/TRAINING_PR.diff | responses/p1-01.md | Часть находок по существу: отсутствие валидации входа, отсутствие auth, отсутствие обработки ошибок llm.generate, неограниченный размер/время выполнения, синхронный вызов в проде, слабая OpenAPI-схема | Нет привязки к id правил (SEC-1/API-1/REL-1/OUT-1) — оценка шла "с нуля", без Context Pack; часть пунктов не по делу для задачи ревью (совместимость с Python 3.8, стиль Protocol, i18n промпта) — шум, отвлекающий от целевых рисков | Проверка не проводилась: нет сверки с CASE.md, нет привязки к конкретным id правил, evidence по file:line есть (app/api.py:35-38, app/review_service.py:19-22), но не сопоставлено с формальными критериями |
+| P1-02 | Повторное ревью с master prompt | OpenCode / gpt-5 | master prompt | См. Master Prompt v1 ниже или [prompt.md](master_prompt_v1.md); вход: TRAINING_PR.diff, CASE.md | responses/p1-02.md | Приняты расхождения по SEC-1, API-1, REL-1, OUT-1 | Уточнили evidence по file:line | Сверили file:line с TRAINING_PR.diff и CASE.md |
 | P1-03 |  |  |  |  |  |  |  |  |
 
 ## Master Prompt v1
