@@ -1,0 +1,22 @@
+{
+  "A": {
+    "count": 3,
+    "median_wall": 15.018876499991165,
+    "median_decode_tps": 6.5966365634916055,
+    "files": [
+      "L:\\ITMOv2\\practices\\practice_03\\lab\\results\\A_s42_r1.json",
+      "L:\\ITMOv2\\practices\\practice_03\\lab\\results\\A_s42_r2.json",
+      "L:\\ITMOv2\\practices\\practice_03\\lab\\results\\A_s42_r3.json"
+    ]
+  },
+  "B": {
+    "count": 3,
+    "median_wall": 3.4381136000156403,
+    "median_decode_tps": 7.932541665675099,
+    "files": [
+      "L:\\ITMOv2\\practices\\practice_03\\lab\\results\\B_s42_r1.json",
+      "L:\\ITMOv2\\practices\\practice_03\\lab\\results\\B_s42_r2.json",
+      "L:\\ITMOv2\\practices\\practice_03\\lab\\results\\B_s42_r3.json"
+    ]
+  }
+}

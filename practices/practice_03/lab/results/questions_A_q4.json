@@ -1,0 +1,44 @@
+{
+  "request": {
+    "model": "itmo-agent",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Ты помощник по учебному проекту. Используй только переданный контекст.\nНе выдумывай CI, зависимости, функции или настройки.\nЕсли данных нет, напиши «В предоставленных материалах нет ответа».\nФормат: короткий ответ, затем основание из контекста.\n\n"
+      },
+      {
+        "role": "user",
+        "content": "===== README.md =====\n# Notify Mini\nУчебный сервис подписки. Подписчики хранятся в памяти процесса.\nВ service.py функция subscribe добавляет непустое имя в множество.\nПовторное добавление имени не создаёт дубликат.\n\nПроверка: make test.\nЗависимости: стандартная библиотека Python 3.10+.\n\n\n\n===== service.py =====\nsubscribers = set()\n\n\ndef subscribe(name):\n    if not name.strip():\n        raise ValueError(\"empty name\")\n    subscribers.add(name.strip())\n    return {\"subscribed\": True}\n\n\n\n===== test_service.py =====\nimport unittest\nfrom service import subscribe, subscribers\n\n\nclass SubscribeTest(unittest.TestCase):\n    def setUp(self):\n        subscribers.clear()\n\n    def test_subscribe(self):\n        self.assertEqual(subscribe(\"Ann\"), {\"subscribed\": True})\n        self.assertEqual(subscribers, {\"Ann\"})\n\n    def test_empty(self):\n        with self.assertRaises(ValueError):\n            subscribe(\" \")\n\n    def test_duplicate(self):\n        subscribe(\"Ann\")\n        subscribe(\"Ann\")\n        self.assertEqual(len(subscribers), 1)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n\n\n\n===== Makefile =====\n.PHONY: test\ntest:\n\tpython3 -m unittest -v\n\n\n\nКакая CI-система запускает тесты? Если сведений нет, скажи об этом."
+      }
+    ],
+    "stream": false,
+    "think": false,
+    "options": {
+      "temperature": 0.2,
+      "seed": 42,
+      "num_ctx": 4096,
+      "num_predict": 512
+    }
+  },
+  "response": {
+    "model": "itmo-agent",
+    "created_at": "2026-09-30T15:42:54.7883676Z",
+    "message": {
+      "role": "assistant",
+      "content": "В предоставленных материалах нет ответа.\n\n**Основание:** В файлах `README.md`, `service.py`, `test_service.py` и `Makefile` не содержится информации о CI-системах (например, GitHub Actions, GitLab CI), их конфигурационных файлах или настройках запуска тестов в автоматическом режиме. Указано только локальное выполнение команд через `make test`."
+    },
+    "done": true,
+    "done_reason": "stop",
+    "total_duration": 43577916000,
+    "load_duration": 13312003800,
+    "prompt_eval_count": 380,
+    "prompt_eval_cached_count": 0,
+    "prompt_eval_duration": 17626307000,
+    "eval_count": 85,
+    "eval_duration": 12631301000
+  },
+  "wall_seconds": 45.63679330001469,
+  "load_seconds": 13.3120038,
+  "total_seconds": 43.577916,
+  "decode_tokens_per_second": 6.72931473962975
+}

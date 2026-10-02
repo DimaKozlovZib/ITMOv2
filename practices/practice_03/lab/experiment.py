@@ -12,12 +12,19 @@ def main():
     p.add_argument("--temperature", type=float, default=0.2)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--output", required=True)
+    p.add_argument("--system_file", default="system.txt",
+                   help="Path to system prompt file (used in mode=system). Relative to lab/ directory.")
     args = p.parse_args()
     root = Path(__file__).resolve().parent
-    context = (root / "demo/README.md").read_text()
+    # Read as UTF-8 to avoid Windows default locale issues
+    context = (root / "demo/README.md").read_text(encoding="utf-8")
     messages = []
     if args.mode == "system":
-        messages.append({"role": "system", "content": (root / "system.txt").read_text()})
+        # Allow overriding system prompt file to compare different system messages
+        system_path = Path(args.system_file)
+        if not system_path.is_absolute():
+            system_path = root / system_path
+        messages.append({"role": "system", "content": system_path.read_text(encoding="utf-8")})
     messages.append({"role": "user", "content": context + "\nКакая CI-система запускает тесты проекта?"})
     payload = {"model": args.model, "messages": messages, "stream": False, "think": False,
                "options": {"temperature": args.temperature, "seed": args.seed, "num_ctx": 4096, "num_predict": 512}}

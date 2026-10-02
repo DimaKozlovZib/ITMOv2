@@ -1,0 +1,44 @@
+{
+  "request": {
+    "model": "itmo-agent",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Ты помощник по учебному проекту. Используй только переданный контекст.\nНе выдумывай CI, зависимости, функции или настройки.\nЕсли данных нет, напиши «В предоставленных материалах нет ответа».\nФормат: короткий ответ, затем основание из контекста.\n\n"
+      },
+      {
+        "role": "user",
+        "content": "===== README.md =====\n# Notify Mini\nУчебный сервис подписки. Подписчики хранятся в памяти процесса.\nВ service.py функция subscribe добавляет непустое имя в множество.\nПовторное добавление имени не создаёт дубликат.\n\nПроверка: make test.\nЗависимости: стандартная библиотека Python 3.10+.\n\n\n\n===== service.py =====\nsubscribers = set()\n\n\ndef subscribe(name):\n    if not name.strip():\n        raise ValueError(\"empty name\")\n    subscribers.add(name.strip())\n    return {\"subscribed\": True}\n\n\n\n===== test_service.py =====\nimport unittest\nfrom service import subscribe, subscribers\n\n\nclass SubscribeTest(unittest.TestCase):\n    def setUp(self):\n        subscribers.clear()\n\n    def test_subscribe(self):\n        self.assertEqual(subscribe(\"Ann\"), {\"subscribed\": True})\n        self.assertEqual(subscribers, {\"Ann\"})\n\n    def test_empty(self):\n        with self.assertRaises(ValueError):\n            subscribe(\" \")\n\n    def test_duplicate(self):\n        subscribe(\"Ann\")\n        subscribe(\"Ann\")\n        self.assertEqual(len(subscribers), 1)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n\n\n\n===== Makefile =====\n.PHONY: test\ntest:\n\tpython3 -m unittest -v\n\n\n\nЧто будет при пустом имени подписчика? Подтверди кодом."
+      }
+    ],
+    "stream": false,
+    "think": false,
+    "options": {
+      "temperature": 0.2,
+      "seed": 42,
+      "num_ctx": 4096,
+      "num_predict": 512
+    }
+  },
+  "response": {
+    "model": "itmo-agent",
+    "created_at": "2026-09-30T15:41:42.8515872Z",
+    "message": {
+      "role": "assistant",
+      "content": "При пустом имени подписчика функция `subscribe` поднимет исключение `ValueError` с сообщением \"empty name\".\n\n**Основание из контекста:**\nВ коде функции `service.py` есть проверка: `if not name.strip(): raise ValueError(\"empty name\")`. В тесте `test_empty` это подтверждается вызовом `with self.assertRaises(ValueError): subscribe(\" \")`, где `\" \"` после удаления пробелов становится пустой строкой."
+    },
+    "done": true,
+    "done_reason": "stop",
+    "total_duration": 29390693700,
+    "load_duration": 8242800,
+    "prompt_eval_count": 375,
+    "prompt_eval_cached_count": 0,
+    "prompt_eval_duration": 13808712000,
+    "eval_count": 96,
+    "eval_duration": 15561195000
+  },
+  "wall_seconds": 31.448169499984942,
+  "load_seconds": 0.0082428,
+  "total_seconds": 29.3906937,
+  "decode_tokens_per_second": 6.1691920189934
+}
