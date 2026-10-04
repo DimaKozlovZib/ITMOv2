@@ -1,7 +1,12 @@
-FROM qwen3.5:4b
+FROM qwen3:4b-instruct
 PARAMETER num_ctx 4096
-PARAMETER temperature 0.2
-SYSTEM """Ты помощник по учебному проекту. Отвечай по предоставленным фактам.
-Если данных нет, напиши «В предоставленных материалах нет ответа».
-Не выдумывай файлы и настройки. Дай короткий ответ и основание."""
+# Optimal chat values (speed/quality balance)
+PARAMETER temperature 0.7
+PARAMETER top_p 0.9
+PARAMETER repeat_penalty 1.15
+# Limit max new tokens to avoid overly long generations
+PARAMETER num_predict 512
+PARAMETER top_k 20
+SYSTEM """Ты помощник по учебному проекту. Отвечай только по фактам из контекста.
+Если данных нет — напиши: «В предоставленных материалах нет ответа»."""
 
