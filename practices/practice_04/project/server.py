@@ -1,5 +1,8 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash
+import io
+import csv
+import json
+from flask import Flask, render_template, request, redirect, url_for, flash, Response
 
 
 app = Flask(__name__)
@@ -57,6 +60,45 @@ def thanks():
 def reports():
     # Render a simple list of reports
     return render_template("reports.html", reports=REPORTS)
+
+
+@app.get("/reports/export")
+def reports_export():
+    """Export reports in CSV or JSON format.
+
+    Query param: format=csv|json (default: csv)
+    """
+    fmt = (request.args.get("format") or "csv").lower()
+
+    if fmt == "json":
+        body = json.dumps(REPORTS, ensure_ascii=False)
+        return Response(
+            body,
+            mimetype="application/json; charset=utf-8",
+            headers={"Content-Disposition": "attachment; filename=reports.json"},
+        )
+
+    if fmt == "csv":
+        # Build CSV with header; include UTF-8 BOM for better Excel support on Windows
+        buf = io.StringIO(newline="")
+        writer = csv.writer(buf)
+        writer.writerow(["name", "group", "vibe_level", "details"])
+        for r in REPORTS:
+            writer.writerow([
+                (r.get("name") or ""),
+                (r.get("group") or ""),
+                (r.get("vibe_level") or ""),
+                (r.get("details") or ""),
+            ])
+        payload = buf.getvalue()
+        bom = "\ufeff"  # Excel-friendly BOM
+        return Response(
+            bom + payload,
+            mimetype="text/csv; charset=utf-8",
+            headers={"Content-Disposition": "attachment; filename=reports.csv"},
+        )
+
+    return Response("Unknown format", status=400)
 
 
 if __name__ == "__main__":
