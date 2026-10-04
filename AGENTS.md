@@ -34,6 +34,9 @@
      - POST /report с form-data: name=Test, details=Hello — ожидать 302 Location: /thanks
      - GET /reports — код ответа 200 и HTML со списком
 
+Стиль кода и соглашения
+- Минимальный Style Guide проекта: см. docs/style-guide.md
+
 Части проекта, которые нельзя менять без разрешения
 - Интерфейсы и контракты маршрутов сервера:
   - Пути и методы: GET /, POST /report, GET /thanks, GET /reports
