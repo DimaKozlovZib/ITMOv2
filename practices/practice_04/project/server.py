@@ -58,57 +58,8 @@ def thanks():
 
 @app.get("/reports")
 def reports():
-    """Render list of reports with optional filters via query params.
-
-    Supported params (no state persisted):
-    - vibe_level: any|low|medium|high (default: any)
-    - group: substring filter for group field (case-insensitive)
-    - q: substring search across name and details (case-insensitive)
-    """
-    # Read and normalize filters from query string
-    vibe_level = (request.args.get("vibe_level") or "any").lower().strip()
-    group_q = (request.args.get("group") or "").strip()
-    q = (request.args.get("q") or "").strip()
-
-    # Restrict vibe_level to allowed values; treat unknown as 'any'
-    allowed_vibes = {"low", "medium", "high"}
-    vibe_filter = vibe_level if vibe_level in allowed_vibes else "any"
-
-    # Apply filters in-memory; original storage remains unchanged
-    filtered = []
-    for r in REPORTS:
-        # Start optimistic; drop out on first mismatch
-        keep = True
-
-        if vibe_filter != "any":
-            if (r.get("vibe_level") or "").lower() != vibe_filter:
-                keep = False
-
-        if keep and group_q:
-            if group_q.lower() not in ((r.get("group") or "").lower()):
-                keep = False
-
-        if keep and q:
-            name = (r.get("name") or "").lower()
-            details = (r.get("details") or "").lower()
-            if q.lower() not in name and q.lower() not in details:
-                keep = False
-
-        if keep:
-            filtered.append(r)
-
-    filters_applied = (vibe_filter != "any") or bool(group_q) or bool(q)
-
-    return render_template(
-        "reports.html",
-        reports=filtered,
-        filters={
-            "vibe_level": vibe_filter,
-            "group": group_q,
-            "q": q,
-            "applied": filters_applied,
-        },
-    )
+    # Render a simple list of reports
+    return render_template("reports.html", reports=REPORTS)
 
 
 @app.get("/reports/export")

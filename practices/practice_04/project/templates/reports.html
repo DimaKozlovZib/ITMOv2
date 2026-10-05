@@ -3,41 +3,12 @@
 {% block content %}
   <div class="card">
     <h1>Заявки</h1>
-    <form method="get" action="/reports" class="filters" style="margin: 12px 0; display:grid; gap:8px;">
-      <div style="display:grid; gap:8px; grid-template-columns: 1fr 1fr 2fr; align-items:end;">
-        <div>
-          <label for="vibe_level">Уровень вайба</label>
-          <select id="vibe_level" name="vibe_level">
-            <option value="any" {% if filters and filters.vibe_level == 'any' %}selected{% endif %}>Любой</option>
-            <option value="low" {% if filters and filters.vibe_level == 'low' %}selected{% endif %}>Низкий</option>
-            <option value="medium" {% if filters and filters.vibe_level == 'medium' %}selected{% endif %}>Средний</option>
-            <option value="high" {% if filters and filters.vibe_level == 'high' %}selected{% endif %}>Высокий</option>
-          </select>
-        </div>
-        <div>
-          <label for="group">Группа</label>
-          <input type="text" id="group" name="group" placeholder="подстрока" value="{{ filters.group if filters else '' }}" />
-        </div>
-        <div>
-          <label for="q">Поиск по имени и описанию</label>
-          <input type="text" id="q" name="q" placeholder="например: Иван или regex" value="{{ filters.q if filters else '' }}" />
-        </div>
-      </div>
-      <div class="actions" style="margin-top:8px;">
-        <button type="submit">Применить</button>
-        <a class="secondary" href="/reports" style="text-decoration:none; display:inline-block; padding:10px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.18);">Сбросить</a>
-      </div>
-    </form>
     <div class="actions" style="margin: 8px 0 16px;">
       <a class="secondary" href="/reports/export?format=csv" style="text-decoration:none; display:inline-block; padding:10px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.18);">Экспорт CSV</a>
       <a class="secondary" href="/reports/export?format=json" style="text-decoration:none; display:inline-block; padding:10px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.18);">Экспорт JSON</a>
     </div>
     {% if not reports %}
-      {% if filters and filters.applied %}
-        <p class="muted">Нет заявок, подходящих под фильтры.</p>
-      {% else %}
-        <p class="muted">Пока пусто. Оставьте первую заявку на главной странице.</p>
-      {% endif %}
+      <p class="muted">Пока пусто. Оставьте первую заявку на главной странице.</p>
     {% else %}
       <ul class="list">
         {% for r in reports %}
