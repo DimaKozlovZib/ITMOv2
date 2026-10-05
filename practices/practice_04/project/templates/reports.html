@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Заявки — Анти-вайбкод{% endblock %}
+{% block content %}
+  <div class="card">
+    <h1>Заявки</h1>
+    <div class="actions" style="margin: 8px 0 16px;">
+      <a class="secondary" href="/reports/export?format=csv" style="text-decoration:none; display:inline-block; padding:10px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.18);">Экспорт CSV</a>
+      <a class="secondary" href="/reports/export?format=json" style="text-decoration:none; display:inline-block; padding:10px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.18);">Экспорт JSON</a>
+    </div>
+    {% if not reports %}
+      <p class="muted">Пока пусто. Оставьте первую заявку на главной странице.</p>
+    {% else %}
+      <ul class="list">
+        {% for r in reports %}
+          <li>
+            <div style="display:flex; justify-content:space-between; gap:12px; align-items:baseline; flex-wrap:wrap;">
+              <div>
+                <strong>{{ r.name }}</strong>
+                {% if r.group %}<span class="muted"> · {{ r.group }}</span>{% endif %}
+              </div>
+              <span class="pill {{ r.vibe_level }}">{{ {'low':'низкий','medium':'средний','high':'высокий'}[r.vibe_level] }}</span>
+            </div>
+            <div class="muted" style="white-space:pre-wrap; margin-top:6px;">{{ r.details }}</div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endblock %}
