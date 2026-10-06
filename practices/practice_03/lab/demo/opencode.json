@@ -1,20 +1,29 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "ollama/itmo-agent",
-  "small_model": "ollama/itmo-agent",
+  "model": "openai/itmo-agent",
+  "small_model": "openai/itmo-local",
   "provider": {
-    "ollama": {
-      "npm": "@ai-sdk/openai-compatible",
+    "openai": {
       "name": "Ollama local",
       "options": {
-        "baseURL": "http://localhost:11434/v1"
+        "baseURL": "http://localhost:11434/v1",
+        "apiKey": "ollama-local"
       },
       "models": {
         "itmo-agent": {
-          "name": "ITMO local 64k",
+          "name": "ITMO agent 8k (qwen3 4b instruct)",
+          "reasoning": false,
           "limit": {
-            "context": 65536,
-            "output": 4096
+            "context": 8192,
+            "output": 1024
+          }
+        },
+        "itmo-local": {
+          "name": "ITMO local 4k (qwen3 4b instruct)",
+          "reasoning": false,
+          "limit": {
+            "context": 4096,
+            "output": 1024
           }
         }
       }
@@ -26,6 +35,18 @@
       "mode": "primary",
       "prompt": "{file:./repo-system.txt}",
       "steps": 8,
+      "permission": {
+        "*": "deny",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow"
+      }
+    },
+    "local-guide-b": {
+      "description": "Read-only local repository assistant (strict)",
+      "mode": "primary",
+      "prompt": "{file:./repo-system-strict.txt}",
+      "steps": 6,
       "permission": {
         "*": "deny",
         "read": "allow",
