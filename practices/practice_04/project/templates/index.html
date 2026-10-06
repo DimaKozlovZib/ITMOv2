@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Форма доноса — Анти-вайбкод{% endblock %}
+{% block content %}
+  <div class="card">
+    <h1>Сообщить о «вайбкоде»</h1>
+    <p class="muted">Заполните форму ниже. Поля «Имя студента» и «Описание» обязательны.</p>
+    <form method="post" action="/report">
+      <div>
+        <label for="name">Имя студента</label>
+        <input type="text" id="name" name="name" placeholder="Иван Иванов" required />
+      </div>
+      <div>
+        <label for="group">Группа (необязательно)</label>
+        <input type="text" id="group" name="group" placeholder="K3140" />
+      </div>
+      <div>
+        <label for="vibe_level">Уровень вайба</label>
+        <select id="vibe_level" name="vibe_level">
+          <option value="low">Низкий</option>
+          <option value="medium" selected>Средний</option>
+          <option value="high">Высокий</option>
+        </select>
+      </div>
+      <div>
+        <label for="details">Описание</label>
+        <textarea id="details" name="details" placeholder="Что произошло, когда и где? Примеры кода, ссылки, свидетели…" required></textarea>
+      </div>
+
+      <div class="actions">
+        <button type="submit">Отправить</button>
+        <a class="secondary" href="/reports" style="text-decoration:none; display:inline-block; padding:10px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.18);">Посмотреть заявки</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

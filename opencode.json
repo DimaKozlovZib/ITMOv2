@@ -1,6 +1,9 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "default_agent": "build",
+  "instructions": [
+    "AGENTS.md"
+  ],
   "provider": {
     "vsellm": {
       "npm": "@ai-sdk/openai-compatible",
@@ -18,5 +21,31 @@
         }
       }
     }
+  },
+  "skills": {
+    "paths": [
+      ".opencode/skills"
+    ]
+  },
+  "mcp": {
+    "context7": {
+    "type": "local",
+    "command": [
+      "npx",
+      "-y",
+      "@upstash/context7-mcp@latest",
+      "--api-key",
+      "{env:CONTEXT7_API_KEY}"
+    ],
+    "enabled": true
+  },
+  "health": {
+    "type": "local",
+    "command": [
+      ".venv/\u0053cripts/python",
+      "scripts/health_smoke_mcp.py"
+    ],
+    "enabled": true
+  }
   }
 }
