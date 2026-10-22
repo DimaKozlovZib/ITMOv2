@@ -3,6 +3,11 @@
 {% block content %}
   <div class="card">
     <h1>Спасибо!</h1>
+    {% if report_id %}
+      <p>Донос принят. Номер доноса: {{ report_id }}.</p>
+    {% else %}
+      <p class="muted">Номер доноса не указан. Отправьте донос через форму.</p>
+    {% endif %}
     <p class="muted">Ваша заявка принята и будет рассмотрена (в пределах этой сессии сервера).</p>
     <div class="actions">
       <a href="/" class="secondary" style="text-decoration:none; display:inline-block; padding:10px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.18);">Новая заявка</a>

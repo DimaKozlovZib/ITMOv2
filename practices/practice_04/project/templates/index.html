@@ -4,26 +4,34 @@
   <div class="card">
     <h1>Сообщить о «вайбкоде»</h1>
     <p class="muted">Заполните форму ниже. Поля «Имя студента» и «Описание» обязательны.</p>
+    {% if form_error %}
+      <div class="flash" role="alert">{{ ERROR_TEXTS[form_error] }}</div>
+    {% endif %}
     <form method="post" action="/report">
       <div>
         <label for="name">Имя студента</label>
-        <input type="text" id="name" name="name" placeholder="Иван Иванов" required />
+        <input type="text" id="name" name="name" placeholder="Иван Иванов" maxlength="60" value="{{ values.get('name', '') if values else '' }}" />
+        {% if field_errors and field_errors.name %}<div class="flash" role="alert">{{ ERROR_TEXTS[field_errors.name] }}</div>{% endif %}
       </div>
       <div>
         <label for="group">Группа (необязательно)</label>
-        <input type="text" id="group" name="group" placeholder="K3140" />
+        <input type="text" id="group" name="group" placeholder="K3140" maxlength="20" value="{{ values.get('group', '') if values else '' }}" />
+        {% if field_errors and field_errors.group %}<div class="flash" role="alert">{{ ERROR_TEXTS[field_errors.group] }}</div>{% endif %}
       </div>
       <div>
         <label for="vibe_level">Уровень вайба</label>
+        {% set current_vibe = values.get('vibe_level', 'medium') if values else 'medium' %}
         <select id="vibe_level" name="vibe_level">
-          <option value="low">Низкий</option>
-          <option value="medium" selected>Средний</option>
-          <option value="high">Высокий</option>
+          <option value="low" {% if current_vibe == 'low' %}selected{% endif %}>{{ VIBE_LABELS.low }}</option>
+          <option value="medium" {% if current_vibe == 'medium' %}selected{% endif %}>{{ VIBE_LABELS.medium }}</option>
+          <option value="high" {% if current_vibe == 'high' %}selected{% endif %}>{{ VIBE_LABELS.high }}</option>
         </select>
+        {% if field_errors and field_errors.vibe_level %}<div class="flash" role="alert">{{ ERROR_TEXTS[field_errors.vibe_level] }}</div>{% endif %}
       </div>
       <div>
         <label for="details">Описание</label>
-        <textarea id="details" name="details" placeholder="Что произошло, когда и где? Примеры кода, ссылки, свидетели…" required></textarea>
+        <textarea id="details" name="details" placeholder="Что произошло, когда и где? Примеры кода, ссылки, свидетели…">{{ values.get('details', '') if values else '' }}</textarea>
+        {% if field_errors and field_errors.details %}<div class="flash" role="alert">{{ ERROR_TEXTS[field_errors.details] }}</div>{% endif %}
       </div>
 
       <div class="actions">

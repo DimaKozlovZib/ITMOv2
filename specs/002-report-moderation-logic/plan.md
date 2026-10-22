@@ -1,113 +1,94 @@
-# Implementation Plan: [FEATURE]
+# Implementation Plan: Модерация доносов (сторона логики)
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
+**Branch**: не создана (хук git не настроен) | **Date**: 2026-10-22 | **Spec**: `specs/002-report-moderation-logic/spec.md`
 
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+**Input**: `specs/002-report-moderation-logic/spec.md`
 
-**Note**: This template is filled in by the `/speckit.plan` command; its definition describes the execution workflow.
+**Contract**: `practices/practice_05/contract.md` (единственный источник маршрутов, полей, кодов и текстов)
 
 ## Summary
 
-[Extract from feature spec: primary requirement + technical approach from research]
+Серверная логика модерации доносов в `practices/practice_04/project/server.py`: валидация полей,
+защита от дубликатов, статусы `new`/`confirmed`/`rejected`, фильтры и счётчики списка, экспорт CSV/JSON,
+маршруты смены статуса и просмотра одной записи. Данные в памяти процесса (список `REPORTS`).
+Представление выбирается по заголовку `Accept`: JSON для API, HTML для браузера (контракт, раздел «Представления»).
+
+Шаблоны HTML не входят в эту фичу (их ведёт `specs/001-report-moderation-ui`). Логика отдаёт шаблонам
+данные и коды; тексты берутся из контракта.
 
 ## Technical Context
 
-<!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
--->
+**Language/Version**: Python 3.11 (по `__pycache__/server.cpython-311.pyc`)
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]
+**Primary Dependencies**: Flask>=3.0,<4 (`practices/practice_04/project/requirements.txt`); стандартная библиотека (`csv`, `io`, `json`, `threading`, `datetime`, `urllib.parse`). Новых зависимостей нет
 
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
+**Storage**: память процесса, список `REPORTS` (конституция, принцип II). Данные не переживают перезапуск
 
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
+**Testing**: ручная проверка по `spec.md` через встроенный тест-клиент Flask (skill `flask-api-check`) или смоук-проверки из AGENTS.md. Автоматических тестов нет
 
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]
+**Target Platform**: Windows, локальный сервер `127.0.0.1:5000`
 
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Project Type**: web-приложение (Flask, серверный рендеринг, без JavaScript)
 
-**Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]
+**Performance Goals**: не задаются; объём данных учебный, хранение в памяти
 
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]
+**Constraints**:
+- Конституция: бизнес-логика только в `server.py`; шаблоны без логики; маршруты по контракту; тексты на русском
+- Экранирование выводимых значений через Jinja2 (автоэкранирование, без `|safe`)
+- Блокировка `threading.Lock` для создания и смены статуса (атомарность дубликатов)
 
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]
-
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Scale/Scope**: единицы–сотни доносов; без пагинации
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+| Принцип | Проверка | Статус |
+|---------|----------|--------|
+| I. Серверный рендеринг на Flask и Jinja | Логика возвращает HTML через `render_template` (для браузера), JS не используется | Соблюдается |
+| II. Хранение данных только в памяти процесса | `REPORTS` в памяти; новых БД и файлов для заявок нет | Соблюдается |
+| III. Русский язык пользовательского текста | Тексты берутся из контракта (русский); HTML-страницы — зона 001 | Соблюдается |
+| IV. Экранирование пользовательского ввода | Вывод через Jinja2 с автоэкранированием; CSV-экспорт защищён от формульной инъекции (контракт) | Соблюдается |
+| IV. Ввод проверяется на сервере до сохранения | `validate_report` вызывается до `create_report` | Соблюдается |
+| V. Контракт прежде кода | Правило выбора представления (Accept) добавлено в `contract.md` до реализации | Соблюдается |
+| V. Бизнес-логика в `server.py` | Все задачи этой фичи — в `server.py` | Соблюдается |
+| V. UI только в `templates/` | Задачи 002 не создают и не меняют шаблоны | Соблюдается |
+| Технологические ограничения: зависимости | Новых зависимостей нет | Соблюдается |
+| Технологические ограничения: маршруты | Новые маршруты (`/reports/{id}`, `/reports/{id}/status`, `/reports/export`) согласованы в контракте (раздел «Примечание по совместимости») | Соблюдается |
 
-[Gates determined based on constitution file]
+Нарушений нет. Отклонений, требующих обоснования, нет.
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/[###-feature]/
-├── plan.md              # This file (/speckit.plan command output)
-├── research.md          # Phase 0 output (/speckit.plan command)
-├── data-model.md        # Phase 1 output (/speckit.plan command)
-├── quickstart.md        # Phase 1 output (/speckit.plan command)
-├── contracts/           # Phase 1 output (/speckit.plan command)
-└── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
+specs/002-report-moderation-logic/
+├── spec.md                  # Спецификация логики
+├── plan.md                  # Этот файл
+├── tasks.md                 # Задачи (T001–T037)
+└── checklists/
+    └── requirements.md      # Чек-лист качества спецификации
 ```
 
 ### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
-├── cli/
-└── lib/
-
-tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+practices/practice_04/project/
+├── server.py                # Вся логика: модель, валидация, маршруты, экспорт
+├── requirements.txt         # Без изменений
+└── templates/               # Не меняется в этой фиче (зона 001)
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+Контракт фиксируется в `practices/practice_05/contract.md` (вне каталога проекта).
+
+**Structure Decision**: один модуль `server.py`. Вынесение логики в отдельные файлы не требуется
+для объёма учебного проекта и противоречило бы требованию конституции держать логику в `server.py`.
+
+## Представление ответов (решение)
+
+- Выбор по заголовку `Accept` (контракт, раздел «Представления»).
+- JSON: `Accept` содержит `application/json`. HTML: иначе.
+- Коды HTTP одинаковые для обоих представлений.
 
 ## Complexity Tracking
 
-> **Fill ONLY if Constitution Check has violations that must be justified**
-
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+Отклонений от конституции нет; таблица не заполняется.
