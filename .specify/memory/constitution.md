@@ -1,50 +1,97 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+SYNC IMPACT REPORT (временный черновик для ревью, удалить перед коммитом)
+
+Version change: шаблон (без версии) -> 1.0.0 (первая ратификация)
+Bump rationale: MAJOR неприменим (нет предыдущей ратифицированной версии);
+  принципы и разделы добавлены впервые, поэтому MINOR-уровень, но по правилам
+  первой ратификации фиксируется как 1.0.0.
+
+Modified principles (заглушка шаблона -> принцип):
+  - [PRINCIPLE_1_NAME] -> I. Серверный рендеринг на Flask и Jinja
+  - [PRINCIPLE_2_NAME] -> II. Хранение данных только в памяти процесса
+  - [PRINCIPLE_3_NAME] -> III. Русский язык пользовательского текста
+  - [PRINCIPLE_4_NAME] -> IV. Экранирование пользовательского ввода
+  - [PRINCIPLE_5_NAME] -> V. Контракт прежде кода и разделение ответственности
+
+Added sections:
+  - Технологические ограничения (вместо [SECTION_2_NAME])
+  - Порядок изменений (вместо [SECTION_3_NAME])
+  - Governance (заполнен)
+
+Removed sections: нет
+
+Deferred TODOs:
+  - TODO(CONTRACT_PATH): каталог practices/practice-05 отсутствует в репозитории.
+    Файл contract.md создать при согласовании; до этого путь фиксирован как указано
+    в правилах. Фактический каталог практики 4: practices/practice_04/project.
+  - TODO(GUIDANCE_FILE): основной файл рабочих инструкций - AGENTS.md в корне.
+-->
+
+# Конституция проекта практики 4
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Серверный рендеринг на Flask и Jinja
+- Все страницы MUST формироваться на сервере средствами Flask и Jinja2.
+- Клиентские JavaScript-фреймворки (React, Vue, Angular и аналоги) MUST NOT использоваться.
+- Допустима только нативная HTML-форма; клиентская логика MUST NOT влиять на результат отправки.
+- Rationale: предсказуемость поведения, минимальная поверхность для отладки и соответствие
+  требованиям учебной практики.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Хранение данных только в памяти процесса
+- Заявки MUST храниться в памяти процесса; подключение базы данных или файлового хранилища
+  для заявок MUST NOT добавляться без явного согласования.
+- Потеря данных при перезапуске сервера является ожидаемым поведением и MUST NOT считаться дефектом.
+- Rationale: требование практики; упрощает запуск и проверку без внешних зависимостей.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Русский язык пользовательского текста
+- Весь текст, видимый пользователю (заголовки, подписи, сообщения, ошибки), MUST быть на русском языке.
+- Имена внутренних идентификаторов, маршрутов и комментариев в коде MAY оставаться на английском.
+- Rationale: язык интерфейса задан требованиями курса; разделение экономит усилия при изменении кода.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Экранирование пользовательского ввода
+- Любой пользовательский ввод MUST экранироваться при выводе в HTML.
+- В шаблонах MUST использоваться автоэкранирование Jinja2; отключение через `|safe`
+  для пользовательских данных MUST NOT допускаться.
+- Ввод MUST проверяться на стороне сервера, включая обязательные поля, до сохранения.
+- Rationale: защита от межсайтового скриптинга (XSS) при хранении данных в памяти.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Контракт прежде кода и разделение ответственности
+- Любое изменение общего контракта между UI и логикой (маршруты, методы, имена полей формы,
+  формат данных, коды ответов, редиректы) MUST сначала фиксироваться в
+  `practice-05/contract.md` и только после этого реализовываться в коде.
+- Бизнес-логика MUST находиться в `server.py`.
+- UI MUST находиться только в каталоге `templates/`; шаблоны MUST NOT содержать бизнес-логики.
+- Rationale: контракт является единственным источником правды для согласования UI и логики.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Технологические ограничения
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- Допустимый стек: Python, Flask, Jinja2. Новые зависимости MUST добавляться в `requirements.txt`
+  только при необходимости и с обоснованием.
+- Имена и расположение ключевых файлов (`server.py`, `templates/`, `requirements.txt`)
+  MUST NOT меняться без разрешения.
+- Маршруты MUST соответствовать зафиксированному контракту: GET /, POST /report, GET /thanks,
+  GET /reports.
+- Существующие шаблоны `index.html`, `reports.html`, `thanks.html` MUST NOT переименовываться;
+  новые шаблоны допускаются при согласовании.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Порядок изменений
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- Изменения контракта MUST проходить в порядке: обновление `practice-05/contract.md`, затем код,
+  затем проверка.
+- Изменения вне `practices/practice_04/project` MUST NOT выполняться без запроса, в частности
+  каталоги practice_01, practice_02, practice_03 и корневой Makefile.
+- Проверки для практики 4 выполняются вручную (смоук-проверки из AGENTS.md); автоматические
+  тесты не являются обязательными, но MUST NOT ломать описанные смоук-проверки.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- Конституция имеет приоритет над остальными практиками проекта.
+- Поправки MUST вноситься через обновление этого файла с записью причины и даты изменения.
+- Версионирование: MAJOR при удалении или переопределении принципа с несовместимыми последствиями;
+  MINOR при добавлении принципа или раздела либо существенном расширении правил; PATCH при
+  уточнении формулировок и исправлении опечаток.
+- Каждое изменение кода MUST проверяться на соответствие принципам I-V перед слиянием.
+- Отклонение от принципа MUST быть явно обосновано в описании изменения.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-10-22 | **Last Amended**: 2026-10-22
