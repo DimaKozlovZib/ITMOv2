@@ -1,0 +1,6 @@
+POST /orders HTTP/1.1
+Host: 127.0.0.1:8066
+Content-Type: application/json
+X-Token: e936a933a4554c12b06c505e6cdf5dba
+
+{"product":"chair","price":1}

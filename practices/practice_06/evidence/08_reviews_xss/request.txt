@@ -1,0 +1,5 @@
+POST /reviews HTTP/1.1
+Host: 127.0.0.1:8066
+Content-Type: application/json
+
+{"product":"chair","text":"<script>alert(1)</script>"}

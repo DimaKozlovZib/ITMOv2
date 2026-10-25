@@ -1,0 +1,2 @@
+HTTP/1.1 500 Internal Server Error
+{"error": "You can only execute one statement at a time.", "type": "ProgrammingError"}
