@@ -1,0 +1,7 @@
+{
+  "baseline_context": {"file": "evidence/before/baseline_context.txt"},
+  "current_context": {"file": "evidence/before/current_context.txt"},
+  "baseline_decision": {"file": "evidence/before/baseline_decision.json"},
+  "current_decision": {"file": "evidence/current_decision.json"},
+  "execution_result": null
+}
