@@ -1,0 +1,3 @@
+GET /debug/logs HTTP/1.1
+Host: 127.0.0.1:8068
+X-Token: 3fb0bd1423804e5e986c3df8e37ee330
