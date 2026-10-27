@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — Анти-вайбкод{% endblock %}
+{% block content %}
+  <div class="card">
+    <h1>{{ title }}</h1>
+    {% if message %}<p class="muted">{{ message }}</p>{% endif %}
+    <div class="actions">
+      <a href="/reports" class="secondary" style="text-decoration:none; display:inline-block; padding:10px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.18);">Вернуться к списку доносов</a>
+      <a href="/" class="secondary" style="text-decoration:none; display:inline-block; padding:10px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.18);">Отправить донос</a>
+    </div>
+  </div>
+{% endblock %}

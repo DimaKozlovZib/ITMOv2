@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Заявки — Анти-вайбкод{% endblock %}
+{% block content %}
+  <div class="card">
+    <h1>Заявки</h1>
+
+    {% if changed_id %}
+      <div class="flash" role="status">Статус доноса №{{ changed_id }}: «{{ STATUS_LABELS.get(changed_to, changed_to) }}».</div>
+    {% endif %}
+
+    {% set cur_status = filters.status if filters else 'all' %}
+    {% set cur_vibe = filters.vibe_level if filters else 'any' %}
+    {% set cur_group = filters.group if filters else '' %}
+    {% set cur_q = filters.q if filters else '' %}
+    {% set export_query = {'status': cur_status, 'vibe_level': cur_vibe, 'group': cur_group, 'q': cur_q} | urlencode %}
+
+    <form method="get" action="/reports" class="filters" style="margin: 12px 0; display:grid; gap:8px;">
+      <div style="display:grid; gap:8px; grid-template-columns: 1fr 1fr 1fr 2fr; align-items:end;">
+        <div>
+          <label for="status">Статус</label>
+          <select id="status" name="status">
+            <option value="all" {% if cur_status == 'all' %}selected{% endif %}>Все статусы</option>
+            <option value="new" {% if cur_status == 'new' %}selected{% endif %}>{{ STATUS_LABELS.new }}</option>
+            <option value="confirmed" {% if cur_status == 'confirmed' %}selected{% endif %}>{{ STATUS_LABELS.confirmed }}</option>
+            <option value="rejected" {% if cur_status == 'rejected' %}selected{% endif %}>{{ STATUS_LABELS.rejected }}</option>
+          </select>
+        </div>
+        <div>
+          <label for="vibe_level">Уровень вайба</label>
+          <select id="vibe_level" name="vibe_level">
+            <option value="any" {% if cur_vibe == 'any' %}selected{% endif %}>Любой</option>
+            <option value="low" {% if cur_vibe == 'low' %}selected{% endif %}>{{ VIBE_LABELS.low }}</option>
+            <option value="medium" {% if cur_vibe == 'medium' %}selected{% endif %}>{{ VIBE_LABELS.medium }}</option>
+            <option value="high" {% if cur_vibe == 'high' %}selected{% endif %}>{{ VIBE_LABELS.high }}</option>
+          </select>
+        </div>
+        <div>
+          <label for="group">Группа</label>
+          <input type="text" id="group" name="group" placeholder="подстрока" value="{{ cur_group }}" />
+        </div>
+        <div>
+          <label for="q">Поиск по имени и описанию</label>
+          <input type="text" id="q" name="q" placeholder="например: Иван" value="{{ cur_q }}" />
+        </div>
+      </div>
+      <div class="actions" style="margin-top:8px;">
+        <button type="submit">Применить</button>
+        <a class="secondary" href="/reports" style="text-decoration:none; display:inline-block; padding:10px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.18);">Сбросить</a>
+      </div>
+    </form>
+
+    <div class="actions" style="margin: 8px 0 16px;">
+      <a class="secondary" href="/reports/export?format=csv&{{ export_query }}" style="text-decoration:none; display:inline-block; padding:10px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.18);">Скачать CSV</a>
+      <a class="secondary" href="/reports/export?format=json&{{ export_query }}" style="text-decoration:none; display:inline-block; padding:10px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.18);">Скачать JSON</a>
+    </div>
+
+    {% if total == 0 %}
+      <p class="muted">Пока пусто. Оставьте первую заявку на главной странице.</p>
+    {% elif shown_count == 0 %}
+      <p class="muted">Нет заявок, подходящих под фильтры.</p>
+      <p class="muted">Показано 0 из {{ total }}</p>
+      <p><a href="/reports">Показать все доносы</a></p>
+    {% else %}
+      <p class="muted">Показано {{ shown_count }} из {{ total }}</p>
+      <ul class="list">
+        {% for r in reports %}
+          <li>
+            <div style="display:flex; justify-content:space-between; gap:12px; align-items:baseline; flex-wrap:wrap;">
+              <div>
+                <span class="muted">№{{ r.id }}</span>
+                <strong>{{ r.name }}</strong>
+                {% if r.group %}<span class="muted"> · {{ r.group }}</span>{% endif %}
+              </div>
+              <div>
+                <span class="pill {{ r.vibe_level }}">{{ VIBE_LABELS[r.vibe_level] }}</span>
+                <span class="pill">{{ STATUS_LABELS[r.status] }}</span>
+              </div>
+            </div>
+            <div class="muted" style="white-space:pre-wrap; margin-top:6px;">{{ r.details }}</div>
+            <div class="actions" style="margin-top:8px;">
+              <form method="post" action="/reports/{{ r.id }}/status" style="display:inline;">
+                <input type="hidden" name="status" value="confirmed" />
+                <input type="hidden" name="return_query" value="{{ export_query }}" />
+                <button type="submit" {% if r.status == 'confirmed' %}disabled{% endif %}>Подтвердить</button>
+              </form>
+              <form method="post" action="/reports/{{ r.id }}/status" style="display:inline;">
+                <input type="hidden" name="status" value="rejected" />
+                <input type="hidden" name="return_query" value="{{ export_query }}" />
+                <button type="submit" class="secondary" {% if r.status == 'rejected' %}disabled{% endif %}>Отклонить</button>
+              </form>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endblock %}
