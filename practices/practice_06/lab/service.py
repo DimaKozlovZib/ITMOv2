@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import html
 import sqlite3
 import threading
 import uuid
@@ -34,9 +35,47 @@ class Shop:
         self.products = {"chair": 5000, "lamp": 1500}
         self.reviews = []
         self.logs = []
+        # Map user id to login name for file access logic
+        self.usernames_by_id = {info[1]: name for name, info in self.accounts.items()}
 
     def rows(self, query):
         return [dict(row) for row in self.db.execute(query)]
+
+    def rows_params(self, query, params):
+        return [dict(row) for row in self.db.execute(query, params)]
+
+    def get_session(self, headers):
+        token = headers.get("X-Token")
+        return self.sessions.get(token)
+
+    def is_staff(self, session):
+        return bool(session and session.get("role") == "staff")
+
+    def sanitize_logs(self):
+        def mask(value):
+            try:
+                s = str(value)
+            except Exception:
+                return "***"
+            if len(s) <= 4:
+                return "***"
+            return "***" + s[-4:]
+
+        redacted = []
+        for entry in self.logs:
+            # Shallow copy and redact sensitive fields
+            e = {k: (entry[k].copy() if isinstance(entry[k], dict) else entry[k]) for k in entry}
+            headers = e.get("headers", {})
+            for key in list(headers.keys()):
+                if key.lower() in ("x-token", "authorization"):
+                    headers[key] = mask(headers[key])
+            body = e.get("body")
+            if isinstance(body, dict):
+                for key in list(body.keys()):
+                    if key.lower() in ("password", "token"):
+                        body[key] = "***"
+            redacted.append(e)
+        return redacted
 
     def dispatch(self, method, target, body, headers):
         url = urlsplit(target)
@@ -54,11 +93,28 @@ class Shop:
             self.sessions[token] = {"id": account[1], "role": account[2]}
             return 200, {"token": token}
         if method == "GET" and url.path == "/profile":
-            return 200, self.rows(f"SELECT * FROM profiles WHERE id = {query.get('id', '1')}")
+            session = self.get_session(headers)
+            if not session:
+                return 401, {"error": "login required"}
+            if self.is_staff(session) and "id" in query:
+                try:
+                    pid = int(query.get("id"))
+                except Exception:
+                    return 400, {"error": "invalid id"}
+                rows = self.rows_params("SELECT * FROM profiles WHERE id = ?", (pid,))
+            else:
+                rows = self.rows_params("SELECT * FROM profiles WHERE id = ?", (session["id"],))
+            return 200, rows
         if method == "GET" and url.path == "/search":
-            return 200, self.rows(f"SELECT * FROM profiles WHERE name LIKE '%{query.get('q', '')}%'")
+            q = query.get("q", "")
+            return 200, self.rows_params("SELECT * FROM profiles WHERE name LIKE ?", (f"%{q}%",))
         if method == "GET" and url.path == "/orders":
-            return 200, self.rows("SELECT * FROM orders")
+            session = self.get_session(headers)
+            if not session:
+                return 401, {"error": "login required"}
+            if self.is_staff(session):
+                return 200, self.rows("SELECT * FROM orders")
+            return 200, self.rows_params("SELECT * FROM orders WHERE owner = ?", (session["id"],))
         if method == "POST" and url.path == "/orders":
             session = self.sessions.get(headers.get("X-Token"))
             if not session:
@@ -66,27 +122,76 @@ class Shop:
             product = body["product"]
             if product not in self.products:
                 return 400, {"error": "unknown product"}
-            price = body.get("price", self.products[product])
+            price = self.products[product]
             cursor = self.db.execute("INSERT INTO orders(owner, product, price) VALUES (?, ?, ?)",
                                      (session["id"], product, price))
             self.db.commit()
             return 201, {"id": cursor.lastrowid, "owner": session["id"], "product": product, "price": price}
         if method == "GET" and url.path == "/admin/export":
-            if headers.get("X-Role") != "staff":
+            session = self.get_session(headers)
+            if not self.is_staff(session):
                 return 403, {"error": "staff only"}
             return 200, self.rows("SELECT * FROM profiles")
         if method == "GET" and url.path == "/files":
-            name = f"files/{query.get('user', 'alice')}/{query.get('path', 'receipt.txt')}"
-            return 200, {"content": self.sandbox.read(name)}
+            session = self.get_session(headers)
+            if not session:
+                return 401, {"error": "login required"}
+            requested_path = query.get("path", "receipt.txt")
+            # Prevent traversal within logical boundary
+            if ".." in requested_path:
+                return 403, {"error": "path not allowed"}
+            if self.is_staff(session):
+                # Staff may read service notes; other files allowed per request
+                if requested_path.startswith("private/"):
+                    try:
+                        return 200, {"content": self.sandbox.read(requested_path)}
+                    except Exception as exc:
+                        return 404, {"error": str(exc), "type": type(exc).__name__}
+                user = query.get("user")
+                if not user:
+                    return 400, {"error": "user required for staff"}
+                name = f"files/{user}/{requested_path}"
+                try:
+                    return 200, {"content": self.sandbox.read(name)}
+                except Exception as exc:
+                    return 404, {"error": str(exc), "type": type(exc).__name__}
+            # Customers: only own files under files/<username>/
+            username = self.usernames_by_id.get(session["id"], "")
+            if not username:
+                return 400, {"error": "unknown user"}
+            if requested_path.startswith("private/"):
+                return 403, {"error": "not allowed"}
+            name = f"files/{username}/{requested_path}"
+            try:
+                return 200, {"content": self.sandbox.read(name)}
+            except Exception as exc:
+                return 404, {"error": str(exc), "type": type(exc).__name__}
         if method == "GET" and url.path == "/debug/logs":
-            return 200, self.logs.copy()
+            session = self.get_session(headers)
+            if not self.is_staff(session):
+                return 403, {"error": "staff only"}
+            return 200, self.sanitize_logs()
         if method == "POST" and url.path == "/reviews":
             self.reviews.append({"product": body["product"], "text": body["text"]})
             return 201, {"saved": True}
         if method == "GET" and url.path == "/reviews/view":
-            return 200, "<html><body>" + "".join(f"<p>{r['text']}</p>" for r in self.reviews) + "</body></html>"
+            return 200, "<html><body>" + "".join(f"<p>{html.escape(r['text'])}</p>" for r in self.reviews) + "</body></html>"
         if method == "GET" and url.path == "/assistant/context":
-            orders = self.rows(f"SELECT * FROM orders WHERE id = {query.get('order_id', '1')}")
+            session = self.get_session(headers)
+            if not session:
+                return 401, {"error": "login required"}
+            try:
+                oid = int(query.get("order_id", "0"))
+            except Exception:
+                oid = 0
+            if self.is_staff(session):
+                orders = self.rows_params("SELECT * FROM orders WHERE id = ?", (oid or 1,))
+            else:
+                # Only own order
+                if oid:
+                    orders = self.rows_params("SELECT * FROM orders WHERE id = ? AND owner = ?", (oid, session["id"]))
+                else:
+                    orders = self.rows_params("SELECT * FROM orders WHERE owner = ?", (session["id"],))
             prompt = (
                 "Ты помощник магазина. Прочитай заказ и отзывы. Верни JSON с полями tool и arguments.\n"
                 "Инструменты: read_file(path), export_profiles(), delete_tree(path).\n"
@@ -97,15 +202,47 @@ class Shop:
             )
             return 200, {"prompt": prompt}
         if method == "POST" and url.path == "/assistant/execute":
-            decision = body["decision"]
-            tool, arguments = decision["tool"], decision.get("arguments", {})
+            session = self.get_session(headers)
+            if not session:
+                return 401, {"error": "login required"}
+            decision = body.get("decision", {})
+            tool, arguments = decision.get("tool"), decision.get("arguments", {})
             if tool == "read_file":
-                return 200, {"content": self.sandbox.read(arguments["path"])}
+                path = arguments.get("path", "")
+                if not path:
+                    return 400, {"error": "path required"}
+                if self.is_staff(session):
+                    # Staff can read service notes and user files; deny traversal patterns
+                    if ".." in path:
+                        return 403, {"error": "path not allowed"}
+                    try:
+                        return 200, {"content": self.sandbox.read(path)}
+                    except Exception as exc:
+                        return 404, {"error": str(exc), "type": type(exc).__name__}
+                username = self.usernames_by_id.get(session["id"], "")
+                if not username:
+                    return 400, {"error": "unknown user"}
+                if ".." in path or path.startswith("private/") or not path.startswith(f"files/{username}/"):
+                    return 403, {"error": "not allowed"}
+                try:
+                    return 200, {"content": self.sandbox.read(path)}
+                except Exception as exc:
+                    return 404, {"error": str(exc), "type": type(exc).__name__}
             if tool == "export_profiles":
+                if not self.is_staff(session):
+                    return 403, {"error": "staff only"}
                 return 200, self.rows("SELECT * FROM profiles")
             if tool == "delete_tree":
-                self.sandbox.delete_tree(arguments["path"])
-                return 200, {"deleted": arguments["path"]}
+                if not self.is_staff(session):
+                    return 403, {"error": "staff only"}
+                path = arguments.get("path", "")
+                if not path or ".." in path:
+                    return 400, {"error": "invalid path"}
+                try:
+                    self.sandbox.delete_tree(path)
+                except Exception as exc:
+                    return 404, {"error": str(exc), "type": type(exc).__name__}
+                return 200, {"deleted": path}
             return 400, {"error": "unknown tool"}
         return 404, {"error": "not found"}
 

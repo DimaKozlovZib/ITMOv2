@@ -1,0 +1,8 @@
+[
+  {"method": "GET", "target": "/health", "body": {}, "headers": {"User-Agent": "...", "Host": "127.0.0.1:8068", "Connection": "Keep-Alive"}},
+  {"method": "POST", "target": "/login", "body": {"username": "alice", "password": "***"}, "headers": {"Content-Type": "application/json", "Host": "127.0.0.1:8068"}},
+  {"method": "POST", "target": "/login", "body": {"username": "bob", "password": "***"}, "headers": {"Content-Type": "application/json", "Host": "127.0.0.1:8068"}},
+  {"method": "POST", "target": "/login", "body": {"username": "staff", "password": "***"}, "headers": {"Content-Type": "application/json", "Host": "127.0.0.1:8068"}},
+  {"method": "GET", "target": "/admin/export", "body": {}, "headers": {"X-Role": "staff", "Host": "127.0.0.1:8068"}},
+  {"method": "GET", "target": "/files?user=bob&path=receipt.txt", "body": {}, "headers": {"X-Token": "***1260", "Host": "127.0.0.1:8068"}}
+]

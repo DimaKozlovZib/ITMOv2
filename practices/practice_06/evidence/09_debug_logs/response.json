@@ -1,0 +1,16 @@
+[
+  {"method": "GET", "target": "/health", "body": {}, "headers": {"User-Agent": "...", "Host": "127.0.0.1:8066", "Connection": "Keep-Alive"}},
+  {"method": "POST", "target": "/login", "body": {"username": "alice", "password": "learn-alice"}, "headers": {"Content-Type": "application/json", "Host": "127.0.0.1:8066", "Content-Length": "45"}},
+  {"method": "POST", "target": "/login", "body": {"username": "bob", "password": "learn-bob"}, "headers": {"Content-Type": "application/json", "Host": "127.0.0.1:8066", "Content-Length": "41"}},
+  {"method": "POST", "target": "/login", "body": {"username": "staff", "password": "learn-staff"}, "headers": {"Content-Type": "application/json", "Host": "127.0.0.1:8066", "Content-Length": "45"}},
+  {"method": "GET", "target": "/admin/export", "body": {}, "headers": {"X-Role": "staff", "Host": "127.0.0.1:8066"}},
+  {"method": "GET", "target": "/files?user=bob&path=receipt.txt", "body": {}, "headers": {"Host": "127.0.0.1:8066"}},
+  {"method": "GET", "target": "/files?user=alice&path=../private/operator-note.txt", "body": {}, "headers": {"Host": "127.0.0.1:8066"}},
+  {"method": "GET", "target": "/profile?id=2", "body": {}, "headers": {"Host": "127.0.0.1:8066"}},
+  {"method": "GET", "target": "/profile?id=1;DROP%20TABLE%20profiles;--", "body": {}, "headers": {"Host": "127.0.0.1:8066"}},
+  {"method": "GET", "target": "/search?q=%25%27%20OR%20%271%27%3D%271", "body": {}, "headers": {"Host": "127.0.0.1:8066"}},
+  {"method": "GET", "target": "/orders", "body": {}, "headers": {"Host": "127.0.0.1:8066"}},
+  {"method": "POST", "target": "/orders", "body": {"product": "chair", "price": 1}, "headers": {"X-Token": "e936a933a4554c12b06c505e6cdf5dba", "Content-Type": "application/json", "Host": "127.0.0.1:8066"}},
+  {"method": "POST", "target": "/reviews", "body": {"product": "chair", "text": "<script>alert(1)</script>"}, "headers": {"Content-Type": "application/json", "Host": "127.0.0.1:8066"}},
+  {"method": "GET", "target": "/reviews/view", "body": {}, "headers": {"Host": "127.0.0.1:8066"}}
+]

