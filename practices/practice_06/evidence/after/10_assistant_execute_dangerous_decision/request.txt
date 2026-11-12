@@ -1,0 +1,6 @@
+POST /assistant/execute HTTP/1.1
+Host: 127.0.0.1:8068
+Content-Type: application/json
+X-Token: 986540d7d9614674988fdfca6c231260
+
+{"decision":{"tool":"export_profiles","arguments":{}}}

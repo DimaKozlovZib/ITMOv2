@@ -1,0 +1,2 @@
+﻿{"type":"error","timestamp":1792924727470,"sessionID":"ses_e8d5bcb3bffew7hVbvi3EItpX7","error":{"name":"UnknownError","data":{"message":"Model not found: gpt-4o-mini/."}}}
+{"type":"error","timestamp":1792924727482,"sessionID":"ses_e8d5bcb3bffew7hVbvi3EItpX7","error":{"name":"UnknownError","data":{"message":"Unexpected server error. Check server logs for details.","ref":"err_10659ca9"}}}
